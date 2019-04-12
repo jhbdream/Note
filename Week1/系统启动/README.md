@@ -13,7 +13,9 @@ int $Sub$$main(void)
 
 ## rt_hw_board_init()
 
-这个函数进行板级初始化，在这个函数中调用了 ``` HAL_Init() ``` 
+进行板级初始化。
+
+调用```HAL_Init() ``` 。
 
 调用 ``` SystemClock_Config() ``` 对系统时钟进行配置，此函数来自STM32cube配置生成
 
@@ -23,11 +25,11 @@ int $Sub$$main(void)
 
 调用```rt_hw_pin_init()``` 对PIN 设备驱动初始化。具体包含了开启硬件时钟，注册pin设备。
 
-调用```rt_hw_usart_init()``` 对串口设备初始化。包括对硬件的配置初始化。注册串口设备。
+调用```rt_hw_usart_init()``` 对串口设备初始化。包括对硬件的寄存器配置初始化。注册串口设备。
 
-调用```rt_console_set_device()``` 设置控制台输出设备。
+调用```rt_console_set_device()``` 设置控制台输出设备。会将 rt_kprintf() 的输出重定向到该设备。
 
-调用```rt_components_board_init()``` 对板子组件进行初始化。根据宏定义的设备进行依次初始化。
+调用```rt_components_board_init()``` 对板子组件进行初始化。根据宏定义的设备进行依次初始化。执行这个函数会遍历 INIT_BOARD_EXPORT 申明的初始化函数，并调用各个函数。
 
 ## rt_show_version()
 
@@ -45,7 +47,7 @@ int $Sub$$main(void)
 
 ## rt_application_init() 
 
-初始化线程，创建```main_thread_entry```线程。
+初始化线程，创建```main_thread_entry```线程。并启动线程。
 
 ## rt_system_timer_thread_init()
 
@@ -53,11 +55,9 @@ int $Sub$$main(void)
 
 ## rt_thread_idle_init()
 
-初始化空闲线程，并且启动空闲线程。空闲线程的优先级最低。当系统中无其他线程时，调度器调度空闲线程。
+初始化空闲线程，并且启动空闲线程。空闲线程的优先级最低。当系统中无其他线程时，调度器调度并执行空闲线程。
 
 ## rt_hw_spin_lock(&_cpus_lock)
-
-支持SMP时启用
 
 ## rt_system_scheduler_start()
 
