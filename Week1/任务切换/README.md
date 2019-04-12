@@ -20,14 +20,13 @@
 
 ## rt_hw_context_switch_to()
 
+```
 rt_hw_context_switch_to    PROC
     EXPORT rt_hw_context_switch_to
     ; R0是传入参数to 指向to线程
-
-​    ;把to线程的信息保存到 rt_interrupt_to_thread 变量中
-
-​    LDR     r1, =rt_interrupt_to_thread
-​    STR     r0, [r1]
+   ;把to线程的信息保存到 rt_interrupt_to_thread 变量中
+    LDR     r1, =rt_interrupt_to_thread
+    STR     r0, [r1]
 
     IF      {FPU} != "SoftVFP"
     ; CLEAR CONTROL.FPCA
@@ -71,9 +70,9 @@ rt_hw_context_switch_to    PROC
     ; never reach here!
     ENDP
 
-
+```
 ## rt_hw_context_switch_interrupt
-
+```
 rt_hw_context_switch_interrupt
     EXPORT rt_hw_context_switch_interrupt
 rt_hw_context_switch    PROC
@@ -105,8 +104,10 @@ LDR     r2, =rt_interrupt_to_thread     ;
     STR     r1, [r0]
     BX      LR
     ENDP
-## PendSV 中断处理函数
+```
 
+## PendSV 中断处理函数
+```
 PendSV_Handler   PROC
     EXPORT PendSV_Handler
 
@@ -184,3 +185,4 @@ pendsv_exit
     ORR     lr, lr, #0x04
     BX      lr
     ENDP
+```
