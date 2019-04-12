@@ -16,15 +16,15 @@
 
 在中断是进行上下文切换时，需要等中断执行完毕。
 
+**调用任务切换的汇编代码时 传入参数是线程堆栈指针**
 
-
-## rt_hw_context_switch_to()
+## rt_hw_context_switch_to() 无来源线程切换
 
 ```
 rt_hw_context_switch_to    PROC
     EXPORT rt_hw_context_switch_to
-    ; R0是传入参数to 指向to线程
-   ;把to线程的信息保存到 rt_interrupt_to_thread 变量中
+    ; R0是传入参数to 指向to线程的堆栈sp
+   ;把to线程的堆栈信息保存到 rt_interrupt_to_thread 变量中
     LDR     r1, =rt_interrupt_to_thread
     STR     r0, [r1]
 
@@ -35,7 +35,7 @@ rt_hw_context_switch_to    PROC
     MSR     CONTROL, r2             ; write-back
     ENDIF
     
-    ;把FROM线程信息清零 因为这里没有上文 只需要下文
+    ;把变量 rt_interrupt_from_thread 清零 因为这里没有上文 只需要下文
     LDR     r1, =rt_interrupt_from_thread 
     MOV     r0, #0x0
     STR     r0, [r1]
@@ -78,7 +78,7 @@ rt_hw_context_switch_interrupt
 rt_hw_context_switch    PROC
     EXPORT rt_hw_context_switch
 
-    ; 判断变量 rt_thread_switch_interrupt_flag 的值是否为1 
+    ；判断变量 rt_thread_switch_interrupt_flag 的值是否为1 
     LDR     r2, =rt_thread_switch_interrupt_flag
     LDR     r3, [r2]
     CMP     r3, #1
@@ -92,13 +92,11 @@ rt_hw_context_switch    PROC
 
 _reswitch
 
-;从 r1 读取 to 线程信息 保存到变量 rt_interrupt_to_thread     
+    ;从 r1 读取 to 线程信息 保存到变量 rt_interrupt_to_thread     
+    LDR     r2, =rt_interrupt_to_thread     ;
+    STR     r1, [r2]
 
-LDR     r2, =rt_interrupt_to_thread     ;
- STR     r1, [r2]
-
-；触发 PendSV 异常， 进入PendSV处理函数 完场上下文切换
-
+    ；触发 PendSV 异常， 进入PendSV处理函数 完场上下文切换
     LDR     r0, =NVIC_INT_CTRL             
     LDR     r1, =NVIC_PENDSVSET
     STR     r1, [r0]
@@ -151,7 +149,7 @@ PendSV_Handler   PROC
     STR     r1, [r0]                ; update from thread stack pointer
 
 ；切换到 to 线程
-
+；把to 堆栈信息 出栈
 switch_to_thread
     LDR     r1, =rt_interrupt_to_thread
     LDR     r1, [r1]
