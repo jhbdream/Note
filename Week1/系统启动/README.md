@@ -37,19 +37,19 @@ int $Sub$$main(void)
 
 对系统定时器进行初始化。在此处对定时器的链表初始化。
 
-##   rt_system_scheduler_init()
+## rt_system_scheduler_init()
 
 对内核调度相关链表资源初始化。
 
 ## rt_system_signal_init()
 
-##rt_application_init() 
+## rt_application_init() 
 
 初始化线程，创建```main_thread_entry```线程。
 
-##rt_system_timer_thread_init()
+## rt_system_timer_thread_init()
 
-如果启用了软件定时器，在这里对软件定时器进行初始化。创建定时器线程。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+如果启用了软件定时器，在这里对软件定时器进行初始化。创建定时器线程。                           
 
 ## rt_thread_idle_init()
 
