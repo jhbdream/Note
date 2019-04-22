@@ -16,6 +16,87 @@
 
 在中断是进行上下文切换时，需要等中断执行完毕。
 
+
+
+## 系统任务切换的过程
+
+线程切换和调用函数类似，但是不同线程的堆栈差异较大，不能简单当做调用函数去自动处理。所以我们要自己处理切换线程这部分的堆栈处理。保护现场。
+
+现在利用mdk调试器，完整跟踪一次任务的切换过程
+
+当前的工程中目前显示线程 是 **main** 主要内容是led闪烁，在 **main** 线程中会频繁调用```rt_thread_mdelay```进行延时，此时系统会进行任务调度，由于系统中目前没有其他任务，应该会切换到 **idle**线程。
+
+在任务切换时，会涉及到俩个内容，一个是 **from\_thread** ,另一个是 **to\_thread** 。在我们这种情况下，**from\_thread** 就是 **main**，**to\_thread**就是**idle**。
+
+### 1、当前正在运行 **main** 线程
+
+MSP:0X20000FA0
+
+PSP:0X200408A0
+
+STACK:PSP
+
+此时使用的是psp栈。
+
+因为在**main**中主动调用了``rt_thread_mdelay``,此时就会启动一次任务切换的过程。切换的目标线程时**idle**。
+
+### 2、 从一个线程切换到下一个线程
+
+#### pendsv运行环境初始化
+当我们要从一个线程切换到另一个线程，使用的函数是
+
+``rt_hw_context_switch((rt_ubase_t)&from_thread->sp,(rt_ubase_t)&to_thread->sp);``
+
+可以看到这个函数包含了俩个参数，是俩个线程的堆栈地址指针。
+
+下面我们继续跟进，看一下这个函数的具体实现。
+
+该函数的实现是用汇编代码，主要实现的功能是：
+
+定义了变量
+
+
+`IMPORT rt_thread_switch_interrupt_flag 进入pendsv异常标志`
+
+`IMPORT rt_interrupt_from_thread 指向from线程的堆栈指针`
+
+`IMPORT rt_interrupt_to_thread 指向to线程的堆栈指针`
+
+上面对变量进行初始化，为了pendsv异常执行做准备。
+
+接下来通过对相关寄存器的操作后触发pendsv异常。我们会在异常中完成任务切换。
+
+####pendsv异常服务程序
+当执行完毕`rt_hw_context_switch`之后，我们触发了pendsv异常，之后系统执行异常服务程序。
+
+当进入**pendsv**异常时，硬件会自动将psr, pc, lr, r12, r3, r2, r1, r0压入堆栈。应为现在还没有完成线程切换，还在运行from线程。所以此时压入到了**from**线程的堆栈中。
+
+接着开始执行pendsv代码。在进入pendsv之后，系统堆栈有psp模式变成msp模式。
+
+pendsv程序主要流程
+
+1、手动将R4-R11寄存器保存到from线程堆栈
+
+![A](figure/prepengsv.png)
+
+2、手动将 to线程堆栈 pop R4-R11
+
+![B](figure/inpendsv.png)
+
+3、将 psp 设置为 to 线程堆栈
+
+![C](figure/exitpendsv.png)
+
+当pendsv执行完毕时，会自动将psr, pc, lr, r12, r3, r2, r1, r0出栈，由于之前已经将psp设置为to线程堆栈。所以自动出栈的现场环境就是to线程的运行环境。
+
+当完成pendsv异常和自动出栈之后，系统开始执行to线程的程序。任务切换完成。
+
+
+
+
+
+
+
 **调用任务切换的汇编代码时 传入参数是线程堆栈指针**
 
 ## rt_hw_context_switch_to() 无来源线程切换
