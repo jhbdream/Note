@@ -1,10 +1,10 @@
 # TOUCH 设备
 ##触摸设备简介
 
-触摸设备外部接口：
+触摸芯片设备的通讯接口：
 
-- **I2C**:用于和主机进行数据交换的接口。
-- **INT PIN**:当产生触摸数据并且可以被读取时，发出中断信号通知主机。
+- **I2C**:用于和主机进行通信。
+- **INT PIN**:当产生触摸数据并且可以被读取时，产生中断提示处理器。
 
 触摸芯片通过使用简单的上升沿或者下降沿中断触发读取，所以主机在应用触摸芯片的时候，不需要去一直查询数据。对主机资源占用较小。
 
@@ -13,6 +13,18 @@
 ## 触摸设备框架介绍
 ![avatar](figure/ceng.png)
 
+
+### STRUCT
+```
+/* 触摸信息结构体 封装坐标和事件 */
+struct touch_message
+{
+    rt_uint16_t x;			//触摸横坐标
+    rt_uint16_t y;			//触摸纵坐标
+    rt_uint8_t event;		//触摸类型事件
+};
+
+```
 ### EVENT
 ```
 TOUCH_EVENT_UP    触摸抬起事件
@@ -23,16 +35,8 @@ TOUCH_EVENT_MOVE  触摸移动事件
 
 TOUCH_EVENT_NONE  触摸无事件
 ```
-### STRUCT
-```
-/* 触摸信息结构体 封装坐标和事件 */
-struct touch_message
-{
-    rt_uint16_t x;
-    rt_uint16_t y;
-    rt_uint8_t event;
-};
 
+```
 /* 用于传递给上层框架 封装底层的实现接口 */
 struct touch_ops
 {
